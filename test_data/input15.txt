@@ -1,0 +1,6 @@
+1
+A(Constant)
+3
+Y(x) => Z(x)
+Z(x) => A(x)
+Y(Constant)

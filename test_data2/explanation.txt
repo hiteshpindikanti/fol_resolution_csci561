@@ -1,0 +1,50 @@
+Disclaimer:
+Please understand that the goal of the samples is to check that you can correctly parse
+the problem definition and generate a correctly formatted output. The samples are very simple and it should not be assumed that if your program works on the samples it will work on all test cases. There will be more complex test cases and it is your task to make sure that your program will work correctly on any valid input.
+
+TL; DR: TA's can design far more scary KB's to crash your program. Have fun :)
+
+Here are some explanations for some test cases:
+
+input6.txt
+** Fixed answer. **
+This should be FALSE. Since KB is consistent, then we deduce A(x) | A(Umbrella).
+We do not know A(Umbrella), so A(Lion) is not determined.
+
+input9.txt
+Both are TRUE using Modus Tollens. Please ignore the predicate names.
+
+input11.txt
+** Removed since F appears as unary and binary predicates, which violated the rules. **
+
+input13.txt
+** Input is illegal: query contains variables. Fixed. **
+This is FALSE since no information about ~Z can be deduced from KB.
+
+input18.txt
+Both Mother and Father implies Parent by #3, #4, so Parent(Liz, Charley), Parent(Charley, Billy) from #1, #2. Parents implies Ancestors #6, so Ancestor(Charley, Billy). By applying #5, we prove Q2.
+Bob is not mentioned, and there is no relevant universally quantified sentences, so cannot prove Q1, Q3.
+
+input19.txt
+** Incorrect number of sentences in KB's. Fixed. **
+#3 states that anything is a Course, so answer is FALSE.
+
+input20.txt
+** Incorrect number of sentences in KB's. Fixed. **
+#2 states that Bob loves anything. Using Modus Tollens we have Course(y) again. FALSE.
+
+input21.txt
+I believe this duplicates input18.txt.
+
+input22.txt
+This is true since #1 states P(u) twice leads to T(x), and #2 do the opposite.
+
+input23.txt
+** Illegal predicate name changed. **
+All combinations of C, D, E appears so at least one of #1 .. #8 must apply.
+
+input24.txt
+Similar as 23, but one combination missing, so cannot deduce.
+
+input25.txt
+** Duplicate of 24, removed. **
