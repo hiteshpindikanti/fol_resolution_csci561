@@ -84,7 +84,5 @@ if __name__ == "__main__":
 
     _4statement1 = {'A': {('x',)}, '~B': {('x',)}}
     _4statement2 = {'B': {('x',)}, '~A': {('C',)}}
-    _4args1 = ('x',)
-    _4args2 = ('C',)
 
-    unit_testing(statement1=_4statement1, args1=_4args1, statement2=_4statement2, args2=_4args2)
+    print(Resolution.unify2(_4statement1, _4statement2))

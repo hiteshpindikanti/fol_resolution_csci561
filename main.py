@@ -54,7 +54,10 @@ def run_all2():
 
 
 if __name__ == "__main__":
+    print("--SET 1--")
     run_all()
+    print("--SET 2--")
+    run_all2()
     # ResolutionIterative(input_file='test_data/input24.txt', output_file='test_data/output24.txt')
     # ResolutionIterative(input_file='test_data/input25.txt', output_file='test_data/output25.txt')
-    # ResolutionIterative(input_file='test_data/input26.txt', output_file='test_data/output26.txt')
+    #ResolutionIterative(input_file='test_data2/input24.txt', output_file='test_data2/output24.txt')

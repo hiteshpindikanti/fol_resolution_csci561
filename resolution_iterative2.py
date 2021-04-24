@@ -99,6 +99,13 @@ class Resolution:
                 variable_name = arguments2[i]
                 for j in range(len(arguments2)):
                     if arguments2[j] == variable_name:
+                        if j < i:
+                            if arguments1[j][0].isupper() and arguments1[j] != arguments1[i]:
+                                return False, {}, {}
+                            if arguments1[j][0].islower():
+                                for k in range(len(arguments1)):
+                                    if arguments1[k] == arguments1[j]:
+                                        arguments1[k] = arguments1[i]
                         arguments2[j] = arguments1[i]
                         arg2_assignments[variable_name] = arguments1[i]
 
@@ -107,26 +114,51 @@ class Resolution:
                 variable_name = arguments1[i]
                 for j in range(len(arguments1)):
                     if arguments1[j] == variable_name:
+                        if j < i:
+                            if arguments2[j][0].isupper() and arguments2[j] != arguments2[i]:
+                                return False, {}, {}
+                            if arguments2[j][0].islower():
+                                for k in range(len(arguments2)):
+                                    if arguments2[k] == arguments2[j]:
+                                        arguments2[k] = arguments2[i]
                         arguments1[j] = arguments2[i]
                         arg1_assignments[variable_name] = arguments2[i]
-                # return False, None, None
 
             elif arguments1[i][0].islower() and arguments2[i][0].islower():
+                variable_name1 = arguments1[i]
+                variable_name2 = arguments2[i]
+                arguments1_copy = deepcopy(arguments1)
+                arguments2_copy = deepcopy(arguments2)
+                execute_other_option_flag = False
+                common_variable_name = "_" + variable_name1
                 for j in range(len(arguments1)):
-                    variable_name1 = arguments1[i]
-                    variable_name2 = arguments2[i]
-                    common_variable_name = "_" + variable_name1
                     if arguments1[j] == variable_name1:
                         arguments1[j] = common_variable_name
                     if arguments2[j] == variable_name2:
+                        if j < i and arguments2[j] != common_variable_name[1:]:
+                            execute_other_option_flag = True
+                            break
                         arguments2[j] = common_variable_name
                         arg2_assignments[variable_name2] = common_variable_name[1:]
+                else:
+                    pass
+                if execute_other_option_flag:
+                    arguments1 = arguments1_copy
+                    arguments2 = arguments2_copy
+                    common_variable_name = "_" + variable_name2
+                    for j in range(len(arguments2)):
+                        if arguments2[j] == variable_name2:
+                            arguments2[j] = common_variable_name
+                        if arguments1[j] == variable_name1:
+                            arguments1[j] = common_variable_name
+                            arg1_assignments[variable_name1] = common_variable_name[1:]
+
                 for j in range(len(arguments1)):
                     if arguments1[j][0] == '_':
                         arguments1[j] = arguments1[j][1:]
                     if arguments2[j][0] == '_':
                         arguments2[j] = arguments2[j][1:]
-        return True, arg1_assignments, arg2_assignments
+        return arguments1 == arguments2, arg1_assignments, arg2_assignments
 
     @staticmethod
     def perform_assignment(statement: dict, assignment: dict, prev_statement=None):
@@ -148,6 +180,7 @@ class Resolution:
                     if arguments[i] in assignment.keys():
                         arguments_copy[i] = assignment[arguments[i]]
                     elif arguments[i] in prev_statement_variables:
+
                         arguments_copy[i] = arguments_copy[i] + arguments_copy[i][0]
                 arguments_set_copy.add(tuple(arguments_copy))
             assigned_statement[predicate] = arguments_set_copy
@@ -174,6 +207,74 @@ class Resolution:
 
         return unified_statement
 
+    @staticmethod
+    def unify2(statement1, statement2):
+        # Keep unifying until no more unification exists
+        flag = True
+        while flag:
+            flag = False
+            arg1_assignments = {}
+            arg2_assignments = {}
+            for predicate1, arguments_set1 in statement1.items():
+                for predicate2, arguments_set2 in statement2.items():
+                    if Resolution.get_negative_query((predicate1, None)) == (predicate2, None):
+                        for arguments1 in arguments_set1:
+                            for arguments2 in arguments_set2:
+                                unifiable, arg1_assignments, arg2_assignments = Resolution.is_unifiable(arguments1,
+                                                                                                        arguments2)
+                                if unifiable:
+                                    flag = True
+                                    break
+                                else:
+                                    arg1_assignments = {}
+                                    arg2_assignments = {}
+                            else:
+                                continue
+                            break
+                        else:
+                            continue
+                        break
+                else:
+                    continue
+                break
+
+            if not flag:
+                break
+            # Perform the found assignment
+            statement1 = Resolution.perform_assignment(statement1, arg1_assignments)
+            statement2 = Resolution.perform_assignment(statement2, arg2_assignments, statement1)
+
+            # Eliminate opposite predicates
+            for predicate, arguments_set in deepcopy(statement1).items():
+                negative_predicate, _ = Resolution.get_negative_query((predicate, tuple()))
+                if negative_predicate in statement2.keys():
+                    for args in deepcopy(statement2[negative_predicate]):
+                        if args in arguments_set:
+                            statement1[predicate].remove(args)
+                            statement2[negative_predicate].remove(args)
+
+            updated_statement1 = defaultdict(set)
+            updated_statement2 = defaultdict(set)
+            for predicate, arguments_set in statement1.items():
+                if arguments_set:
+                    updated_statement1[predicate].update(arguments_set)
+            for predicate, arguments_set in statement2.items():
+                if arguments_set:
+                    updated_statement2[predicate].update(arguments_set)
+            statement1 = updated_statement1
+            statement2 = updated_statement2
+
+        # Final merge of the two statements
+        unified_statement = defaultdict(set)
+        for predicate, arguments_set in statement1.items():
+            if arguments_set:
+                unified_statement[predicate].update(arguments_set)
+        for predicate, arguments_set in statement2.items():
+            if arguments_set:
+                unified_statement[predicate].update(arguments_set)
+
+        return unified_statement
+
     def apply_resolution(self, initial_statement) -> bool:
 
         predicate, arguments_set = next(iter(initial_statement.items()))
@@ -190,18 +291,10 @@ class Resolution:
 
             negative_query = Resolution.get_negative_query(query)
 
-            unifiable, arg1_assignments, arg2_assignments = Resolution.is_unifiable(negative_query[1], arguments)
+            unifiable, _, _ = Resolution.is_unifiable(negative_query[1], arguments)
             if unifiable:
-                # Perform Unification Assignment on the statements
-                initial_statement_copy = Resolution.perform_assignment(initial_statement, arg1_assignments)
-                statement_copy = Resolution.perform_assignment(statement, arg2_assignments, initial_statement_copy)
-
                 # Unify Statements
-                unified_statement = Resolution.unify(initial_statement_copy, statement_copy)
-
-                #print("{}|[assignments: {}] UNIFIED {}|[assignments: {}] RESULTS {}"
-                 #     .format(dict(initial_statement), arg1_assignments, dict(statement),
-                  #            arg2_assignments, dict(unified_statement)))
+                unified_statement = Resolution.unify2(initial_statement, statement)
 
                 if not unified_statement:
                     return True
@@ -217,8 +310,6 @@ class Resolution:
                     for arguments in statement[negative_query[0]]:
                         if self.dict_hash((initial_statement, query, statement, arguments)) not in visited:
                             stack.append((initial_statement, query, statement, arguments))
-                            #print('appending in stack: {}'.format((initial_statement, query, statement, arguments)))
-        #print("END....\n")
         return False
 
     def resolve_queries(self) -> str:
@@ -232,12 +323,10 @@ class Resolution:
             else:
                 self.knowledge_base[negative_query[0]].append(initial_statement)
                 result.append(self.apply_resolution(initial_statement=initial_statement))
-                if result[-1]:
-                    index = self.knowledge_base[negative_query[0]].index(initial_statement)
-                    self.knowledge_base[negative_query[0]].pop(index)
-                    negative_statement = {query[0]: {query[1]}}
-                    if negative_statement not in self.knowledge_base[query[0]]:
-                        self.knowledge_base[query[0]].append(negative_statement)
+                index = self.knowledge_base[negative_query[0]].index(initial_statement)
+                self.knowledge_base[negative_query[0]].pop(index)
+                if not self.knowledge_base[negative_query[0]]:
+                    self.knowledge_base.pop(negative_query[0])
 
         return '\n'.join(map(lambda x: str(x).upper(), result))
 

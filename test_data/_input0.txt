@@ -1,0 +1,6 @@
+1
+FG(Bob)
+3
+AG(x,y,x) => FG(y)
+AT(x) => AG(x,y,John)
+AT(John)
