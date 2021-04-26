@@ -1,4 +1,4 @@
-from resolution_iterative2 import Resolution
+from resolution_iterative import Resolution
 
 
 def create_test_file_1(file_name: str):
@@ -59,9 +59,9 @@ def unit_testing(statement1: dict, args1: tuple, statement2: dict, args2: tuple)
 
 
 if __name__ == "__main__":
-    # create_test_file_1('test_data/input9.txt')
-    # create_test_file_2('test_data/input10.txt')
-    # create_test_file_3('test_data/input19.txt')
+    # create_test_file_1('test_data1/input9.txt')
+    # create_test_file_2('test_data1/input10.txt')
+    # create_test_file_3('test_data1/input19.txt')
 
     _1statement1 = {'~P': {('H', 'T')}}
     _1statement2 = {'R': {('x',), ('y',)}, 'P': {('x', 'y')}}
