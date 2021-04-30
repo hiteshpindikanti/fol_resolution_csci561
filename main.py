@@ -1,4 +1,4 @@
-from resolution_iterative import Resolution as ResolutionIterative
+from resolution_iterative_v3 import Resolution as ResolutionIterative
 from os import listdir
 import time
 
@@ -12,6 +12,7 @@ def run_all(folder: str):
     num_files = len(list(filter(lambda x: x.startswith('input'), listdir(folder))))
     for index in range(1, num_files + 1):
         start = time.time()
+        print("Running Test Case {}".format(index))
         ResolutionIterative(input_file='{}/{}{}.txt'.format(folder, input_file_format, index),
                             output_file='{}/{}{}.txt'.format(folder, output_file_format, index))
         end = time.time()
